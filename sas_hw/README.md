@@ -6,7 +6,8 @@
 - 範圍：只做 Day 1–3（Day 4–7 講義只有預告、沒有題目，不寫）
 
 > **數值標示說明**
-> - 「待執行確認」：尚未在 SAS 上實際執行，請貼上程式後對照 LOG / Results 填入。
+> - 「SAS 實際輸出 (2026-11-20)」：2026-11-20 於 SAS OnDemand for Academics 實際執行的結果；所有 LOG 皆 0 ERROR、0 WARNING。
+> - 「未逐項回報，請以截圖為準」：該項 SAS 有輸出，但未逐項抄錄數字，以截圖為準。
 > - 「影子值」：引用 [`shadow/expected.md`](shadow/expected.md)，為 **Python 影子驗證，非 SAS 實際輸出**，僅供對照。
 
 ## 檔案
@@ -41,13 +42,13 @@ RUN;
 
 **預期輸出重點**
 
-| 項目 | 預期 | SAS 實際 |
+| 項目 | 預期 | SAS 實際輸出 (2026-11-20) |
 |---|---|---|
-| Observations | 428（影子值同為 428） | 待執行確認 |
-| Variables | 15 | 待執行確認 |
-| Char（5） | Make, Model, Type, Origin, DriveTrain | 待執行確認 |
-| Num（10） | MSRP, Invoice, EngineSize, Cylinders, Horsepower, MPG_City, MPG_Highway, Weight, Wheelbase, Length | 待執行確認 |
-| 各欄 Len / Format | — | 待執行確認 |
+| Observations | 428（影子值同為 428） | 428 |
+| Variables | 15 | 15 |
+| Char（5） | Make, Model, Type, Origin, DriveTrain | 未逐項回報，請以截圖為準 |
+| Num（10） | MSRP, Invoice, EngineSize, Cylinders, Horsepower, MPG_City, MPG_Highway, Weight, Wheelbase, Length | 未逐項回報，請以截圖為準 |
+| 各欄 Len / Format | — | 未逐項回報，請以截圖為準 |
 
 [截圖: day1_task1.png]
 
@@ -61,7 +62,8 @@ PROC PRINT DATA=sashelp.cars (OBS=10);
 RUN;
 ```
 
-**預期輸出重點**：標題顯示在上方；表格 10 列、15 欄；LOG `There were 10 observations read`。前 10 筆內容：待執行確認。
+**預期輸出重點**：標題顯示在上方；表格 10 列、15 欄；LOG `There were 10 observations read`。
+SAS 實際輸出 (2026-11-20)：讀取 10 筆；前 10 筆內容：未逐項回報，請以截圖為準。
 
 [截圖: day1_task2.png]
 
@@ -77,7 +79,8 @@ RUN;
 TITLE;
 ```
 
-**預期輸出重點**：10 列，欄位只有 Obs / Make / Model / MSRP。實際車款與價格：待執行確認。
+**預期輸出重點**：10 列，欄位只有 Obs / Make / Model / MSRP。
+SAS 實際輸出 (2026-11-20)：讀取 10 筆；實際車款與價格：未逐項回報，請以截圖為準。
 
 [截圖: day1_task3.png]
 
@@ -108,12 +111,12 @@ RUN;
 
 **驗證檢查點（講義解讀數字）**
 
-| 檢查點 | 講義數字 | 影子值（[expected.md §1](shadow/expected.md)） | SAS 實際 |
+| 檢查點 | 講義數字 | 影子值（[expected.md §1](shadow/expected.md)） | SAS 實際輸出 (2026-11-20) |
 |---|---|---|---|
-| MSRP 平均 | $32,775 | 32774.86 → PASS | 待執行確認 |
-| MSRP 中位數 | $27,635 | 27635 → PASS | 待執行確認 |
-| Hybrid 車數 | 3 輛 | 3 → PASS | 待執行確認 |
-| MSRP 最高價 | $192,465 | 192465 → PASS | 待執行確認 |
+| MSRP 平均 | $32,775 | 32774.86 → PASS | 32774.86（N=428） |
+| MSRP 中位數 | $27,635 | 27635 → PASS | 27635 |
+| Hybrid 車數 | 3 輛 | 3 → PASS | 3 |
+| MSRP 最高價 | $192,465 | 192465 → PASS | 192465 |
 
 [截圖: day2_baseline.png]
 
@@ -130,11 +133,11 @@ RUN;
 
 **預期輸出重點**：3 列（Asia / Europe / USA），N 合計 428。
 
-| Origin | 影子值 N / Mean / Median（[expected.md §2](shadow/expected.md)） | SAS 實際 |
+| Origin | 影子值 N / Mean / Median（[expected.md §2](shadow/expected.md)） | SAS 實際輸出 (2026-11-20) |
 |---|---|---|
-| Asia | 158 / 190.70 / 187.5 | 待執行確認 |
-| Europe | 123 / 251.89 / 225 | 待執行確認 |
-| USA | 147 / 212.82 / 200 | 待執行確認 |
+| Asia | 158 / 190.70 / 187.5 | Mean 190.70 / Median 187.5 |
+| Europe | 123 / 251.89 / 225 | Mean 251.89 / Median 225 |
+| USA | 147 / 212.82 / 200 | Mean 212.82 / Median 200 |
 
 [截圖: day2_task1.png]
 
@@ -150,11 +153,11 @@ RUN;
 
 **預期輸出重點**：3×3 表，Total 428，無缺值類別。
 
-| Origin | 影子值 Row Pct All / Front / Rear（[expected.md §3](shadow/expected.md)） | SAS 實際 |
+| Origin | 影子值 Row Pct All / Front / Rear（[expected.md §3](shadow/expected.md)） | SAS 實際輸出 (2026-11-20) |
 |---|---|---|
-| Asia | 21.52 / 62.66 / 15.82 | 待執行確認 |
-| Europe | 29.27 / 30.08 / 40.65 | 待執行確認 |
-| USA | 14.97 / 61.22 / 23.81 | 待執行確認 |
+| Asia | 21.52 / 62.66 / 15.82 | Front 62.66%（最高） |
+| Europe | 29.27 / 30.08 / 40.65 | Rear 40.65%（最高） |
+| USA | 14.97 / 61.22 / 23.81 | Front 61.22%（最高） |
 
 [截圖: day2_task2.png]
 
@@ -205,10 +208,10 @@ RUN;
 
 **預期輸出重點**
 
-| 項目 | 影子值（[expected.md §4](shadow/expected.md)） | SAS 實際 |
+| 項目 | 影子值（[expected.md §4](shadow/expected.md)） | SAS 實際輸出 (2026-11-20) |
 |---|---|---|
-| WORK.CLEAN_CARS_HW 筆數 | 152 | 待執行確認 |
-| 變數數 | 10（KEEP 清單，影子值 assert 通過） | 待執行確認 |
+| WORK.CLEAN_CARS_HW 筆數 | 152 | 152 |
+| 變數數 | 10（KEEP 清單，影子值 assert 通過） | 10 |
 
 [截圖: day3_task1.png]
 [截圖: day3_task2.png]
@@ -236,15 +239,15 @@ PROC PRINT DATA=work.clean_cars_hw_sorted (OBS=10);
 RUN;
 ```
 
-| 驗證 | 檢查重點 | 影子值（[expected.md](shadow/expected.md)） | SAS 實際 |
+| 驗證 | 檢查重點 | 影子值（[expected.md](shadow/expected.md)） | SAS 實際輸出 (2026-11-20) |
 |---|---|---|---|
-| 1. CONTENTS | 10 個變數；HP_Per_10k、Avg_MPG Num 8；Power_Tier、Eco_Level Char 12 | 10 欄（§4） | 待執行確認 |
-| 2. FREQ Origin | 只有 Asia | Asia 152 | 待執行確認 |
-| 2. FREQ Power_Tier | 「一般動力」完整未截斷、無缺值 | 一般動力 133 / 高性能 19（§4.3） | 待執行確認 |
-| 2. FREQ Eco_Level | 三類完整、無缺值 | 一般 86 / 高節能 46 / 高耗能 20（§4.4，依講義原文門檻） | 待執行確認 |
-| 3. MEANS MSRP | Max <= 50000 | N 152、Max 48450（§4.1） | 待執行確認 |
-| 3. MEANS HP_Per_10k | — | Mean 82.7220、Max 120.3043（§4.1） | 待執行確認 |
-| 4. 前 10 名第 1 名 | 降冪排序 | Suzuki Aeno S 4dr，120.3043（§4.2） | 待執行確認 |
+| 1. CONTENTS | 10 個變數；HP_Per_10k、Avg_MPG Num 8；Power_Tier、Eco_Level Char 12 | 10 欄（§4） | 10 個變數；Eco_Level、Power_Tier 長度皆 12 |
+| 2. FREQ Origin | 只有 Asia | Asia 152 | 只有 Asia |
+| 2. FREQ Power_Tier | 「一般動力」完整未截斷、無缺值 | 一般動力 133 / 高性能 19（§4.3） | 一般動力 133 / 高性能 19（中文完整，未截斷） |
+| 2. FREQ Eco_Level | 三類完整、無缺值 | 一般 86 / 高節能 46 / 高耗能 20（§4.4，依講義原文門檻） | 一般 86 / 高節能 46 / 高耗能 20 |
+| 3. MEANS MSRP | Max <= 50000 | N 152、Max 48450（§4.1） | Max 48450 |
+| 3. MEANS HP_Per_10k | — | Mean 82.7220、Max 120.3043（§4.1） | Mean 82.72、Max 120.30 |
+| 4. 前 10 名第 1 名 | 降冪排序 | Suzuki Aeno S 4dr，120.3043（§4.2） | Suzuki Aeno S 4dr，120.30 |
 
 [截圖: day3_verify1.png]
 [截圖: day3_verify2.png]
@@ -258,5 +261,30 @@ RUN;
 | 檔案 | 檢查 1 | 檢查 2 | 檢查 3（觀測筆數 NOTE） |
 |---|---|---|---|
 | day1_answers.sas | 0 ERROR | 0 WARNING | 兩次 PROC PRINT 皆 `There were 10 observations read from the data set SASHELP.CARS.` |
-| day2_answers.sas | 0 ERROR | 0 WARNING | MEANS / FREQ / 任務 1、2 皆讀 428 筆（UNIVARIATE 不一定印此 NOTE）；講義 MEANS 的 NMISS 對 MSRP / Horsepower / MPG_City 應為 0（影子值，待執行確認） |
-| day3_answers.sas | 0 ERROR | 0 WARNING（且無 `Missing values were generated`、`Division by zero`） | `WORK.CLEAN_CARS_HW has 152 observations and 10 variables.`（152 為影子值，待執行確認）；PROC PRINT 讀 10 筆 |
+| day2_answers.sas | 0 ERROR | 0 WARNING | MEANS / FREQ / 任務 1、2 皆讀 428 筆（UNIVARIATE 不一定印此 NOTE）；講義 MEANS 的 NMISS 對 MSRP / Horsepower / MPG_City 應為 0（SAS 實際輸出 (2026-11-20)：未逐項回報，請以截圖為準） |
+| day3_answers.sas | 0 ERROR | 0 WARNING（且無 `Missing values were generated`、`Division by zero`） | `WORK.CLEAN_CARS_HW has 152 observations and 10 variables.`；PROC PRINT 讀 10 筆 |
+
+SAS 實際輸出 (2026-11-20)：三個檔案的 LOG 皆為 0 ERROR、0 WARNING；Day 1 兩個 PROC PRINT 各讀 10 筆；Day 3 輸出 152 筆、10 個變數。
+
+---
+
+## SAS 實際輸出 vs Python 影子驗證
+
+| 項目 | SAS 實際輸出 (2026-11-20) | Python 影子驗證（[expected.md](shadow/expected.md)） | 結論 |
+|---|---|---|---|
+| SASHELP.CARS 筆數 / 變數數 | 428 / 15 | 428 / 15 | 一致 |
+| MSRP N / 平均 / 中位數 / 最高 | 428 / 32774.86 / 27635 / 192465 | 428 / 32774.86 / 27635 / 192465 | 一致 |
+| Type = Hybrid | 3 | 3 | 一致 |
+| Horsepower 平均（Asia / Europe / USA） | 190.70 / 251.89 / 212.82 | 190.70 / 251.89 / 212.82 | 一致 |
+| Horsepower 中位數（Asia / Europe / USA） | 187.5 / 225 / 200 | 187.5 / 225 / 200 | 一致 |
+| Row Pct：Asia Front / Europe Rear / USA Front | 62.66% / 40.65% / 61.22% | 62.66 / 40.65 / 61.22 | 一致 |
+| WORK.CLEAN_CARS_HW 筆數 / 變數數 | 152 / 10 | 152 / 10 | 一致 |
+| Origin 類別 | 只有 Asia | 只有 Asia | 一致 |
+| Power_Tier（一般動力 / 高性能） | 133 / 19 | 133 / 19 | 一致 |
+| Eco_Level（一般 / 高節能 / 高耗能） | 86 / 46 / 20 | 86 / 46 / 20 | 一致 |
+| MSRP 最高（Day 3） | 48450 | 48450 | 一致 |
+| HP_Per_10k 平均 / 最高 | 82.72 / 120.30 | 82.7220 / 120.3043 | 一致（四捨五入至小數 2 位） |
+| HP_Per_10k 第 1 名 | Suzuki Aeno S 4dr | Suzuki Aeno S 4dr | 一致 |
+| Eco_Level / Power_Tier 長度 | 12 / 12 | 最長類別 9 / 12 bytes，皆 <= 12 | 一致（中文無截斷） |
+
+**結論：全部一致。**

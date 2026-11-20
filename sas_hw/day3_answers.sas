@@ -5,7 +5,8 @@
  * 環境    ：SAS OnDemand for Academics (SAS Studio, session encoding = UTF-8)
  * 說明    ：輸出 WORK.CLEAN_CARS_HW，不覆蓋 sashelp。
  *           任務 1~3 合在同一個 DATA step；之後接 4 段驗證程式。
- *           Python 影子驗證數字見 shadow/expected.md（非 SAS 實際輸出）。
+ *           標「SAS 實際輸出 (2026-11-20)」者為 2026-11-20 於 SAS OnDemand 實際執行的結果，
+ *           與 shadow/expected.md 的 Python 影子驗證全部一致；所有 LOG：0 ERROR、0 WARNING。
  *****************************************************************/
 
 /* ===== Day 3 任務 1 ~ 3（同一個 DATA step，依講義原文改寫） ===== */
@@ -64,12 +65,13 @@ RUN;
    NOTE: There were 152 observations read from the data set SASHELP.CARS.
          WHERE (Origin='Asia') and (MSRP<=50000);   （LOG 中 WHERE 的括號寫法可能略有不同）
    NOTE: The data set WORK.CLEAN_CARS_HW has 152 observations and 10 variables.
-   （152 為 Python 影子驗證值，待執行確認；10 = KEEP 清單變數數） */
+   SAS 實際輸出 (2026-11-20)：WORK.CLEAN_CARS_HW 152 筆、10 個變數（10 = KEEP 清單變數數）。 */
 
 
 /* ===== Day 3 驗證 1：PROC CONTENTS ===== */
 /* 目的：確認欄位存在且長度正確。
-   預期：10 個變數；HP_Per_10k（Num 8）、Power_Tier（Char 12）、Eco_Level（Char 12）都存在。 */
+   預期：10 個變數；HP_Per_10k（Num 8）、Power_Tier（Char 12）、Eco_Level（Char 12）都存在。
+   SAS 實際輸出 (2026-11-20)：10 個變數；Eco_Level 與 Power_Tier 長度皆為 12。 */
 PROC CONTENTS DATA=work.clean_cars_hw;
 RUN;
 
@@ -78,7 +80,8 @@ RUN;
 /* 目的：確認 Origin 只剩 Asia，且中文類別沒有被截斷（應看到完整的「一般動力」）。
    預期：Origin 只有 Asia 一類；Power_Tier 只有「一般動力」「高性能」兩類、無缺值；
          Eco_Level 為「高節能」「一般」「高耗能」。
-         各類別次數：待執行確認（Python 影子值見 shadow/expected.md 4.3、4.4）。 */
+         SAS 實際輸出 (2026-11-20)：Origin 只有 Asia；Power_Tier 一般動力 133 / 高性能 19（中文完整，未截斷）；
+                                    Eco_Level 一般 86 / 高節能 46 / 高耗能 20。 */
 PROC FREQ DATA=work.clean_cars_hw;
     TABLES Origin Power_Tier Eco_Level / MISSING;
 RUN;
@@ -87,7 +90,7 @@ RUN;
 /* ===== Day 3 驗證 3：PROC MEANS ===== */
 /* 目的：確認 MSRP 最大值 <= 50000，並看 HP_Per_10k 的分布。
    預期：MSRP 的 Max <= 50000；N 與 DATA step 輸出筆數相同。
-         實際數值：待執行確認（Python 影子值見 shadow/expected.md 4.1）。 */
+         SAS 實際輸出 (2026-11-20)：MSRP 最高 48450（<= 50000）；HP_Per_10k 平均 82.72、最高 120.30。 */
 PROC MEANS DATA=work.clean_cars_hw;
     VAR MSRP HP_Per_10k;
 RUN;
@@ -96,8 +99,9 @@ RUN;
 /* ===== Day 3 驗證 4：HP_Per_10k 前 10 名 ===== */
 /* 目的：先排序到另一個 WORK 表（不動 clean_cars_hw 本身），依 HP_Per_10k 降冪，再印前 10 筆。
    預期：10 列，HP_Per_10k 由大到小。
-         實際車款：待執行確認（Python 影子值見 shadow/expected.md 4.2）。
-   LOG 預期：PROC SORT -> NOTE: The data set WORK.CLEAN_CARS_HW_SORTED has 152 observations ...（待執行確認）
+         SAS 實際輸出 (2026-11-20)：第 1 名 Suzuki Aeno S 4dr，HP_Per_10k = 120.30。
+         （第 2~10 名：未逐項回報，請以截圖為準；Python 影子值見 shadow/expected.md 4.2）
+   LOG 預期：PROC SORT -> NOTE: The data set WORK.CLEAN_CARS_HW_SORTED has 152 observations ...
              PROC PRINT -> NOTE: There were 10 observations read from the data set WORK.CLEAN_CARS_HW_SORTED. */
 PROC SORT DATA=work.clean_cars_hw OUT=work.clean_cars_hw_sorted;
     BY DESCENDING HP_Per_10k;
