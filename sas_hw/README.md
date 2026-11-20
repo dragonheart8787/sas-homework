@@ -87,17 +87,20 @@ TITLE;
 
 ### 講義原始程式（對照基準）
 
-> 實作者手上沒有講義原文，以下三段依講義解讀數字推定；若與講義不同，以講義為準。
+> 依講義原文照抄。
 
 ```sas
-PROC MEANS DATA=sashelp.cars N MEAN MEDIAN STD MIN MAX;
-    VAR MSRP;
+/* 1. 數值型變數基礎統計量 */
+PROC MEANS DATA=sashelp.cars N NMISS MEAN MEDIAN STD MIN MAX;
+    VAR MSRP Horsepower MPG_City;
 RUN;
 
+/* 2. 類別型變數次數分配 (含遺漏值檢查) */
 PROC FREQ DATA=sashelp.cars;
-    TABLES Type;
+    TABLES Origin Type / MISSING;
 RUN;
 
+/* 3. 深度健檢：極端值 (Outliers) 與分位數 */
 PROC UNIVARIATE DATA=sashelp.cars;
     VAR MSRP;
 RUN;
@@ -162,20 +165,21 @@ RUN;
 ### 任務 1–3（同一個 DATA step）
 
 **題目**：
-- 任務一：`WHERE Origin = 'Asia' AND MSRP <= 50000;`（取代原本的 `MSRP <= 100000`），保留原本 Avg_MPG 與 Eco_Level 邏輯（`LENGTH Eco_Level $12`）。
+- 任務一：`WHERE Origin = 'Asia' AND MSRP <= 50000;`（取代原本的 `MSRP <= 100000`），保留講義原本的 Avg_MPG 與 Eco_Level 邏輯（依講義原文：`MEAN()`、門檻 >=28 / >=20；LENGTH 由講義的 `$10` 改為 `$12`）。
 - 任務二：`HP_Per_10k = Horsepower / (MSRP / 10000);`，前面加防呆 `IF MSRP > 0 THEN … ELSE HP_Per_10k = .;`
 - 任務三：`LENGTH Power_Tier $12;` 寫在 IF 之前；`IF Horsepower >= 250 THEN Power_Tier = "高性能"; ELSE Power_Tier = "一般動力";`，Horsepower 缺值時設空白。
 - KEEP 必須包含 HP_Per_10k 與 Power_Tier。
 
 ```sas
 DATA work.clean_cars_hw;
-    LENGTH Eco_Level  $12;
+    LENGTH Eco_Level  $12;   /* 講義原本 $10，改 $12 與 Power_Tier 統一 */
     LENGTH Power_Tier $12;
     SET sashelp.cars;
     WHERE Origin = 'Asia' AND MSRP <= 50000;
 
-    Avg_MPG = (MPG_City + MPG_Highway) / 2;
-    IF Avg_MPG >= 30 THEN Eco_Level = "高節能";      /* 門檻 30/20 為假設，需與講義核對 */
+    Avg_MPG = MEAN(MPG_City, MPG_Highway);   /* 依講義原文：用 MEAN()，不用 (a+b)/2 */
+    IF MISSING(Avg_MPG) THEN Eco_Level = " ";
+    ELSE IF Avg_MPG >= 28 THEN Eco_Level = "高節能";
     ELSE IF Avg_MPG >= 20 THEN Eco_Level = "一般";
     ELSE Eco_Level = "高耗能";
 
@@ -186,8 +190,7 @@ DATA work.clean_cars_hw;
     ELSE IF Horsepower >= 250 THEN Power_Tier = "高性能";
     ELSE Power_Tier = "一般動力";
 
-    KEEP Make Model Type Origin DriveTrain MSRP Horsepower
-         MPG_City MPG_Highway Avg_MPG Eco_Level
+    KEEP Make Model Type Origin MSRP Horsepower Avg_MPG Eco_Level
          HP_Per_10k Power_Tier;
 RUN;
 ```
@@ -195,16 +198,17 @@ RUN;
 **重點說明**
 - UTF-8 下中文字 3 bytes：「一般動力」= 12 bytes，`$10` 會被截斷；`$12` 剛好放得下（影子值 [expected.md §4.5](shadow/expected.md)）。
 - 不先宣告 LENGTH 時，Power_Tier 長度會由第一次指定的 "高性能"（9 bytes）決定，"一般動力" 會被截成 "一般動"。
-- SAS 缺值小於任何數字，所以要先用 `MISSING(Horsepower)` 擋掉，否則缺值會落入「一般動力」。
-- KEEP 漏掉 HP_Per_10k / Power_Tier → 新欄位被丟掉（本題最容易出錯）。
-- ⚠ Eco_Level 門檻 30 / 20 是實作者假設（講義原始門檻未提供），請核對講義後修改。
+- 講義原本 `LENGTH Eco_Level $10`：Eco_Level 三類最長 9 bytes，`$10` 夠用；改成 `$12` 是與 Power_Tier 統一，避免日後 4 字類別被截斷。
+- `MEAN(MPG_City, MPG_Highway)` 會略過缺值；`(a+b)/2` 遇任一缺值就得缺值，兩者不可互換。
+- SAS 缺值小於任何數字，所以要先用 `MISSING(Horsepower)`、`MISSING(Avg_MPG)` 擋掉，否則缺值會落入「一般動力」／「高耗能」。
+- KEEP = 講義 8 個變數 + HP_Per_10k、Power_Tier，共 10 個；漏掉新欄位 → 被丟掉（本題最容易出錯）。
 
 **預期輸出重點**
 
 | 項目 | 影子值（[expected.md §4](shadow/expected.md)） | SAS 實際 |
 |---|---|---|
 | WORK.CLEAN_CARS_HW 筆數 | 152 | 待執行確認 |
-| 變數數 | 13（KEEP 清單） | 待執行確認 |
+| 變數數 | 10（KEEP 清單，影子值 assert 通過） | 待執行確認 |
 
 [截圖: day3_task1.png]
 [截圖: day3_task2.png]
@@ -234,10 +238,10 @@ RUN;
 
 | 驗證 | 檢查重點 | 影子值（[expected.md](shadow/expected.md)） | SAS 實際 |
 |---|---|---|---|
-| 1. CONTENTS | HP_Per_10k Num 8；Power_Tier、Eco_Level Char 12 | — | 待執行確認 |
+| 1. CONTENTS | 10 個變數；HP_Per_10k、Avg_MPG Num 8；Power_Tier、Eco_Level Char 12 | 10 欄（§4） | 待執行確認 |
 | 2. FREQ Origin | 只有 Asia | Asia 152 | 待執行確認 |
 | 2. FREQ Power_Tier | 「一般動力」完整未截斷、無缺值 | 一般動力 133 / 高性能 19（§4.3） | 待執行確認 |
-| 2. FREQ Eco_Level | 三類完整 | 一般 105 / 高節能 27 / 高耗能 20（§4.4，依假設門檻） | 待執行確認 |
+| 2. FREQ Eco_Level | 三類完整、無缺值 | 一般 86 / 高節能 46 / 高耗能 20（§4.4，依講義原文門檻） | 待執行確認 |
 | 3. MEANS MSRP | Max <= 50000 | N 152、Max 48450（§4.1） | 待執行確認 |
 | 3. MEANS HP_Per_10k | — | Mean 82.7220、Max 120.3043（§4.1） | 待執行確認 |
 | 4. 前 10 名第 1 名 | 降冪排序 | Suzuki Aeno S 4dr，120.3043（§4.2） | 待執行確認 |
@@ -254,5 +258,5 @@ RUN;
 | 檔案 | 檢查 1 | 檢查 2 | 檢查 3（觀測筆數 NOTE） |
 |---|---|---|---|
 | day1_answers.sas | 0 ERROR | 0 WARNING | 兩次 PROC PRINT 皆 `There were 10 observations read from the data set SASHELP.CARS.` |
-| day2_answers.sas | 0 ERROR | 0 WARNING | MEANS / FREQ / UNIVARIATE / 任務 1、2 皆讀 428 筆（UNIVARIATE 不一定印此 NOTE） |
-| day3_answers.sas | 0 ERROR | 0 WARNING（且無 `Missing values were generated`、`Division by zero`） | `WORK.CLEAN_CARS_HW has 152 observations and 13 variables.`（152 為影子值，待執行確認）；PROC PRINT 讀 10 筆 |
+| day2_answers.sas | 0 ERROR | 0 WARNING | MEANS / FREQ / 任務 1、2 皆讀 428 筆（UNIVARIATE 不一定印此 NOTE）；講義 MEANS 的 NMISS 對 MSRP / Horsepower / MPG_City 應為 0（影子值，待執行確認） |
+| day3_answers.sas | 0 ERROR | 0 WARNING（且無 `Missing values were generated`、`Division by zero`） | `WORK.CLEAN_CARS_HW has 152 observations and 10 variables.`（152 為影子值，待執行確認）；PROC PRINT 讀 10 筆 |

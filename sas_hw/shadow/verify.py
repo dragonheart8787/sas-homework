@@ -20,9 +20,8 @@ import pandas as pd
 SOURCE_URL = "https://raw.githubusercontent.com/sassoftware/restaf/master/data/cars.csv"
 TAG = "（Python 影子驗證，非 SAS 實際輸出）"
 
-# Day 3 Eco_Level 門檻：講義原始程式未提供給實作者，此處為假設值，
-# 必須與 day3_answers.sas 內的門檻一致；若講義門檻不同，兩邊都要一起改。
-ECO_HIGH = 30   # Avg_MPG >= 30 -> 高節能
+# Day 3 Eco_Level 門檻：依講義原文，必須與 day3_answers.sas 內的門檻一致。
+ECO_HIGH = 28   # Avg_MPG >= 28 -> 高節能
 ECO_MID = 20    # Avg_MPG >= 20 -> 一般；其餘 -> 高耗能
 
 
@@ -114,11 +113,18 @@ def main(csv_path, out_path):
 
     # ---------- 步驟 3：Day 3 ----------
     sub = df[(df["Origin"] == "Asia") & (df["MSRP"] <= 50000)].copy()
-    sub["Avg_MPG"] = (sub["MPG_City"] + sub["MPG_Highway"]) / 2
+    # 與 SAS MEAN() 對齊：略過缺值，只要一個非缺值就有平均
+    sub["Avg_MPG"] = sub[["MPG_City", "MPG_Highway"]].mean(axis=1, skipna=True)
     sub["Eco_Level"] = sub["Avg_MPG"].map(eco_level)
     sub["HP_Per_10k"] = sub["Horsepower"] / (sub["MSRP"] / 10000)
     sub.loc[~(sub["MSRP"] > 0), "HP_Per_10k"] = float("nan")
     sub["Power_Tier"] = sub["Horsepower"].map(power_tier)
+
+    # 對應 SAS KEEP：講義 8 個變數 + HP_Per_10k、Power_Tier
+    keep = ["Make", "Model", "Type", "Origin", "MSRP", "Horsepower", "Avg_MPG", "Eco_Level",
+            "HP_Per_10k", "Power_Tier"]
+    sub = sub[keep]
+    assert len(sub.columns) == 10, f"輸出欄位數 {len(sub.columns)} != 10"
 
     # SAS PROC SORT 預設 EQUALS（同值保留原順序）-> pandas 用 stable sort
     top10 = sub.sort_values("HP_Per_10k", ascending=False, kind="stable").head(10)
@@ -166,7 +172,8 @@ def main(csv_path, out_path):
 
     L.append(f"## 4. Day 3：WORK.CLEAN_CARS_HW {TAG}\n")
     L.append(f"- Origin == 'Asia' 且 MSRP <= 50000 的筆數：**{len(sub)}**{TAG}")
-    L.append(f"- Origin 類別：{sorted(set(sub['Origin']))}{TAG}\n")
+    L.append(f"- Origin 類別：{sorted(set(sub['Origin']))}{TAG}")
+    L.append(f"- 輸出欄位數：**{len(sub.columns)}**（{', '.join(sub.columns)}）{TAG}\n")
     L.append(f"### 4.1 PROC MEANS VAR MSRP HP_Per_10k {TAG}\n")
     L.append(md_table(v_means, floatfmt="{:.4f}"))
     L.append("")
@@ -177,8 +184,8 @@ def main(csv_path, out_path):
     L.append(md_table(tier_cnt))
     L.append("")
     L.append(f"### 4.4 Eco_Level 次數 {TAG}\n")
-    L.append(f"> 門檻為假設值：Avg_MPG >= {ECO_HIGH} 高節能、>= {ECO_MID} 一般、其餘高耗能"
-             "（講義原始門檻未提供，需與講義核對；若門檻不同，此表無效）。\n")
+    L.append(f"> 門檻依講義原文：Avg_MPG = MEAN(MPG_City, MPG_Highway)；>= {ECO_HIGH} 高節能、>= {ECO_MID} 一般、"
+             "其餘高耗能；Avg_MPG 缺值 -> 空白。\n")
     L.append(md_table(eco_cnt))
     L.append("")
     L.append(f"### 4.5 UTF-8 字串長度 {TAG}\n")
@@ -192,7 +199,7 @@ def main(csv_path, out_path):
              "但 PROC UNIVARIATE 的分位數預設 `PCTLDEF=5`，與 pandas `quantile()` 預設的線性內插不同，"
              "**所以只比較中位數，不比較 Q1/Q3/P90 等其他分位數**。")
     L.append("2. **缺值**：SAS PROC MEANS 會自動排除缺值（N 只算非缺值）；本腳本一律用 `count()` 與 `skipna=True`，保持一致。"
-             "sashelp.cars 中 Cylinders 有 2 筆缺值（Mazda RX-8），本作業用到的 MSRP / Horsepower / MPG 皆無缺值。")
+             "sashelp.cars 中 Cylinders 有 2 筆缺值（Mazda RX-8），本作業用到的 MSRP / Horsepower / MPG 皆無缺值。Avg_MPG 用 `mean(axis=1, skipna=True)` 對齊 SAS 的 `MEAN()`（略過缺值），而非 `(a+b)/2`。")
     L.append("3. **PROC FREQ / MISSING**：SAS 加 `/ MISSING` 會把缺值當一個類別列出；pandas 用 `dropna=False` 對應。"
              "本資料 Origin / DriveTrain / Power_Tier 無缺值，所以有無 MISSING 結果相同。")
     L.append("4. **排序同值**：PROC SORT 預設 EQUALS（同值保留原順序），pandas 用 `kind='stable'` 對應。")

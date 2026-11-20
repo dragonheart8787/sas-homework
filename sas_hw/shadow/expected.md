@@ -45,6 +45,7 @@
 
 - Origin == 'Asia' 且 MSRP <= 50000 的筆數：**152**（Python 影子驗證，非 SAS 實際輸出）
 - Origin 類別：['Asia']（Python 影子驗證，非 SAS 實際輸出）
+- 輸出欄位數：**10**（Make, Model, Type, Origin, MSRP, Horsepower, Avg_MPG, Eco_Level, HP_Per_10k, Power_Tier）（Python 影子驗證，非 SAS 實際輸出）
 
 ### 4.1 PROC MEANS VAR MSRP HP_Per_10k （Python 影子驗證，非 SAS 實際輸出）
 
@@ -77,12 +78,12 @@
 
 ### 4.4 Eco_Level 次數 （Python 影子驗證，非 SAS 實際輸出）
 
-> 門檻為假設值：Avg_MPG >= 30 高節能、>= 20 一般、其餘高耗能（講義原始門檻未提供，需與講義核對；若門檻不同，此表無效）。
+> 門檻依講義原文：Avg_MPG = MEAN(MPG_City, MPG_Highway)；>= 28 高節能、>= 20 一般、其餘高耗能；Avg_MPG 缺值 -> 空白。
 
 | Eco_Level | Frequency |
 |---|---|
-| 一般 | 105 |
-| 高節能 | 27 |
+| 一般 | 86 |
+| 高節能 | 46 |
 | 高耗能 | 20 |
 
 ### 4.5 UTF-8 字串長度 （Python 影子驗證，非 SAS 實際輸出）
@@ -98,7 +99,7 @@
 ## 5. SAS 與 pandas 的差異（對照時注意）
 
 1. **中位數**：SAS PROC MEANS 的 MEDIAN 與 pandas `median()` 定義相同（偶數筆取中間兩值平均），可直接比對。但 PROC UNIVARIATE 的分位數預設 `PCTLDEF=5`，與 pandas `quantile()` 預設的線性內插不同，**所以只比較中位數，不比較 Q1/Q3/P90 等其他分位數**。
-2. **缺值**：SAS PROC MEANS 會自動排除缺值（N 只算非缺值）；本腳本一律用 `count()` 與 `skipna=True`，保持一致。sashelp.cars 中 Cylinders 有 2 筆缺值（Mazda RX-8），本作業用到的 MSRP / Horsepower / MPG 皆無缺值。
+2. **缺值**：SAS PROC MEANS 會自動排除缺值（N 只算非缺值）；本腳本一律用 `count()` 與 `skipna=True`，保持一致。sashelp.cars 中 Cylinders 有 2 筆缺值（Mazda RX-8），本作業用到的 MSRP / Horsepower / MPG 皆無缺值。Avg_MPG 用 `mean(axis=1, skipna=True)` 對齊 SAS 的 `MEAN()`（略過缺值），而非 `(a+b)/2`。
 3. **PROC FREQ / MISSING**：SAS 加 `/ MISSING` 會把缺值當一個類別列出；pandas 用 `dropna=False` 對應。本資料 Origin / DriveTrain / Power_Tier 無缺值，所以有無 MISSING 結果相同。
 4. **排序同值**：PROC SORT 預設 EQUALS（同值保留原順序），pandas 用 `kind='stable'` 對應。
 5. **字元比較**：SAS 字元比較會忽略尾端空白；pandas 字串比較不會，但 CSV 內 Origin 無尾端空白，不影響。

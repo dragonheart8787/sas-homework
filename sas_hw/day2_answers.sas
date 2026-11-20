@@ -8,26 +8,21 @@
  *****************************************************************/
 
 /* ===== Day 2 講義原始程式（對照基準） ===== */
-/* 說明：以下三段是講義的示範程式，作為任務的對照基準。
-   注意：實作者手上沒有講義原文，以下依講義解讀數字
-         （平均 $32,775、中位數 $27,635、Hybrid 3 輛、最高價 $192,465）推定，
-         若與講義原文不同，請以講義為準替換。 */
+/* 說明：以下三段依講義原文照抄，作為任務的對照基準。
+   驗證檢查點（講義解讀數字）：MSRP 平均 $32,775、中位數 $27,635、最高價 $192,465、Hybrid 3 輛。
+   注意：UNIVARIATE 的其他分位數（Q1、Q3…）預設 PCTLDEF=5，本作業只比對中位數。 */
 
-/* (A) PROC MEANS：MSRP 的描述統計
-   預期：N=428、Mean≈32774.86（約 $32,775）、Median=27635、Max=192465 */
-PROC MEANS DATA=sashelp.cars N MEAN MEDIAN STD MIN MAX;
-    VAR MSRP;
+/* 1. 數值型變數基礎統計量 */
+PROC MEANS DATA=sashelp.cars N NMISS MEAN MEDIAN STD MIN MAX;
+    VAR MSRP Horsepower MPG_City;
 RUN;
 
-/* (B) PROC FREQ：各車型 (Type) 次數
-   預期：Type = Hybrid 的 Frequency = 3 */
+/* 2. 類別型變數次數分配 (含遺漏值檢查) */
 PROC FREQ DATA=sashelp.cars;
-    TABLES Type;
+    TABLES Origin Type / MISSING;
 RUN;
 
-/* (C) PROC UNIVARIATE：MSRP 分布
-   預期：Basic Statistical Measures 的 Median = 27635；Highest 極值 = 192465
-   注意：UNIVARIATE 的其他分位數（Q1、Q3…）預設 PCTLDEF=5，本作業不比對。 */
+/* 3. 深度健檢：極端值 (Outliers) 與分位數 */
 PROC UNIVARIATE DATA=sashelp.cars;
     VAR MSRP;
 RUN;
